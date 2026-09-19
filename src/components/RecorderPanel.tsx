@@ -56,14 +56,14 @@ function RecorderPanel() {
   const isArmed = recorder.armedInstrumentId !== null
 
   return (
-    <aside className="flex w-[300px] shrink-0 flex-col border-l bg-background">
-      <div className="border-b px-4 py-4">
+    <aside className="flex w-[270px] shrink-0 flex-col border-l bg-background">
+      <div className="border-b px-4 py-3">
         <h2 className="font-heading text-base tracking-tight">
           Loop Recorder
         </h2>
       </div>
 
-      <div className="flex flex-col gap-4 border-b px-4 py-4">
+      <div className="flex flex-col gap-3 border-b px-4 py-3">
         <div className="flex items-center gap-2">
           <Button
             variant={recorder.isPlaying ? 'default' : 'outline'}
@@ -176,7 +176,7 @@ function RecorderPanel() {
         </Button>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-4 py-4">
+      <div className="flex-1 overflow-y-auto px-4 py-3">
         <div className="mb-3 flex items-center gap-2 text-xs text-muted-foreground">
           <ListMusic className="size-3.5" />
           Layers ({recorder.layers.length})

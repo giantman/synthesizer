@@ -197,14 +197,14 @@ function SynthKeyboard() {
     <div
       ref={containerRef}
       className={cn(
-        'rounded-lg border bg-card p-6 shadow-sm',
+        'rounded-lg border bg-card p-5 shadow-sm',
         isFullscreen && 'flex h-screen flex-col justify-center',
       )}
     >
-      <div className="mb-4 flex items-center justify-between">
+      <div className="mb-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <PianoIcon className="size-5" />
-          <h2 className="font-heading text-xl">Synth Keyboard</h2>
+          <PianoIcon className="size-4" />
+          <h2 className="font-heading text-lg">Synth Keyboard</h2>
         </div>
         <div className="flex items-center gap-2">
           <Button

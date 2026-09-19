@@ -226,11 +226,11 @@ function ChordSynth() {
   const pads = keyMode ? scaleDegrees(keyScale) : NOTE_NAMES
 
   return (
-    <div className="rounded-lg border bg-card p-6 shadow-sm">
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+    <div className="rounded-lg border bg-card p-5 shadow-sm">
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <Sparkles className="size-5" />
-          <h2 className="font-heading text-xl">Chord Synth</h2>
+          <Sparkles className="size-4" />
+          <h2 className="font-heading text-lg">Chord Synth</h2>
           <span className="ml-2 rounded-md bg-muted px-2 py-1 text-xs font-medium text-muted-foreground">
             {lastChordLabel}
           </span>
@@ -286,7 +286,7 @@ function ChordSynth() {
       </div>
 
       {/* Modifier row */}
-      <div className="mb-5 flex flex-wrap gap-1.5">
+      <div className="mb-4 flex flex-wrap gap-1.5">
         {MODIFIERS.map((m) => (
           <button
             key={m.id}
@@ -304,7 +304,7 @@ function ChordSynth() {
       </div>
 
       {/* Root / scale-degree pads */}
-      <div className="mb-5 grid select-none grid-cols-7 gap-1.5 sm:grid-cols-12">
+      <div className="mb-4 grid select-none grid-cols-7 gap-1.5 sm:grid-cols-12">
         {pads.map((pad, index) => {
           const label = keyMode
             ? (pad as { roman: string }).roman
@@ -318,7 +318,7 @@ function ChordSynth() {
               onMouseUp={releasePad}
               onMouseLeave={releasePad}
               className={cn(
-                'flex h-14 items-center justify-center rounded-md border text-sm font-medium transition-colors',
+                'flex h-12 items-center justify-center rounded-md border text-sm font-medium transition-colors',
                 pressedIndex === index
                   ? 'border-primary bg-primary text-primary-foreground'
                   : 'border-border bg-background hover:bg-muted',
@@ -331,7 +331,7 @@ function ChordSynth() {
       </div>
 
       {/* Bottom control row */}
-      <div className="flex flex-wrap items-end gap-6">
+      <div className="flex flex-wrap items-end gap-5">
         <div className="flex flex-col gap-1">
           <label className="text-xs text-muted-foreground">Voicing dial</label>
           <div className="flex items-center gap-3">

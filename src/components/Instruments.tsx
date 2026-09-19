@@ -4,8 +4,8 @@ import ChordSynth from '@/components/instruments/ChordSynth'
 function Instruments() {
   return (
     <section>
-      <h1 className="font-heading mb-6 text-4xl tracking-tight">Instruments</h1>
-      <div className="flex flex-col gap-6">
+      <h1 className="font-heading mb-4 text-3xl tracking-tight">Instruments</h1>
+      <div className="flex flex-col gap-4">
         <ChordSynth />
         <SynthKeyboard />
       </div>
