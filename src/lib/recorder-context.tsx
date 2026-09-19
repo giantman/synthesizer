@@ -77,7 +77,14 @@ export function RecorderProvider({ children }: { children: React.ReactNode }) {
   const metronomeSynthRef = useRef<Tone.Synth | null>(null)
 
   const ensureAudioStarted = async () => {
-    if (Tone.context.state !== 'running') await Tone.start()
+    if (Tone.context.state !== 'running') {
+      await Tone.start()
+      // Tone's default lookAhead (0.1s) is baked into every Tone.now() call,
+      // which is what live triggerAttack/triggerRelease use for key presses —
+      // that reads as input lag. Trading a little Transport scheduling
+      // headroom for snappier live playing.
+      Tone.getContext().lookAhead = 0.01
+    }
   }
 
   const beginRecordingNow = () => {

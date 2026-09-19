@@ -3,32 +3,51 @@ import * as Tone from 'tone'
 import { cn } from '@/lib/utils'
 import { useRecorder, nextLayerColor } from '@/lib/recorder-context'
 import { Button } from '@/components/ui/button'
-import { Disc, Square, Piano as PianoIcon } from 'lucide-react'
+import {
+  Disc,
+  Square,
+  Piano as PianoIcon,
+  Maximize,
+  Minimize,
+} from 'lucide-react'
 
 type KeyDef = { note: string; type: 'white' | 'black'; key: string }
 
+// Two octaves (C4–B5) plus a resolving C6, using the classic two-row
+// "typing piano" layout: Z..M / S D G H J for the lower octave, Q..I / 2 3 5 6 7
+// for the upper one — more natural to play than one continuous QWERTY row.
 const KEYS: KeyDef[] = [
-  { note: 'C4', type: 'white', key: 'a' },
-  { note: 'C#4', type: 'black', key: 'w' },
-  { note: 'D4', type: 'white', key: 's' },
-  { note: 'D#4', type: 'black', key: 'e' },
-  { note: 'E4', type: 'white', key: 'd' },
-  { note: 'F4', type: 'white', key: 'f' },
-  { note: 'F#4', type: 'black', key: 't' },
-  { note: 'G4', type: 'white', key: 'g' },
-  { note: 'G#4', type: 'black', key: 'y' },
-  { note: 'A4', type: 'white', key: 'h' },
-  { note: 'A#4', type: 'black', key: 'u' },
-  { note: 'B4', type: 'white', key: 'j' },
-  { note: 'C5', type: 'white', key: 'k' },
-  { note: 'C#5', type: 'black', key: 'o' },
-  { note: 'D5', type: 'white', key: 'l' },
-  { note: 'D#5', type: 'black', key: 'p' },
-  { note: 'E5', type: 'white', key: ';' },
+  { note: 'C4', type: 'white', key: 'z' },
+  { note: 'C#4', type: 'black', key: 's' },
+  { note: 'D4', type: 'white', key: 'x' },
+  { note: 'D#4', type: 'black', key: 'd' },
+  { note: 'E4', type: 'white', key: 'c' },
+  { note: 'F4', type: 'white', key: 'v' },
+  { note: 'F#4', type: 'black', key: 'g' },
+  { note: 'G4', type: 'white', key: 'b' },
+  { note: 'G#4', type: 'black', key: 'h' },
+  { note: 'A4', type: 'white', key: 'n' },
+  { note: 'A#4', type: 'black', key: 'j' },
+  { note: 'B4', type: 'white', key: 'm' },
+  { note: 'C5', type: 'white', key: 'q' },
+  { note: 'C#5', type: 'black', key: '2' },
+  { note: 'D5', type: 'white', key: 'w' },
+  { note: 'D#5', type: 'black', key: '3' },
+  { note: 'E5', type: 'white', key: 'e' },
+  { note: 'F5', type: 'white', key: 'r' },
+  { note: 'F#5', type: 'black', key: '5' },
+  { note: 'G5', type: 'white', key: 't' },
+  { note: 'G#5', type: 'black', key: '6' },
+  { note: 'A5', type: 'white', key: 'y' },
+  { note: 'A#5', type: 'black', key: '7' },
+  { note: 'B5', type: 'white', key: 'u' },
+  { note: 'C6', type: 'white', key: 'i' },
 ]
 
-const WHITE_KEY_WIDTH = 48
-const BLACK_KEY_WIDTH = 32
+const BASE_WHITE_KEY_WIDTH = 48
+const BASE_BLACK_KEY_WIDTH = 32
+const BASE_WHITE_KEY_HEIGHT = 160
+const BASE_BLACK_KEY_HEIGHT = 100
 const INSTRUMENT_ID = 'synth-keyboard'
 
 function buildKeyLayout(keys: KeyDef[]) {
@@ -52,6 +71,48 @@ function SynthKeyboard() {
   const recorder = useRecorder()
   const [activeNotes, setActiveNotes] = useState<Set<string>>(new Set())
   const colorRef = useRef(nextLayerColor())
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [isFullscreen, setIsFullscreen] = useState(false)
+  const [keyWidth, setKeyWidth] = useState(BASE_WHITE_KEY_WIDTH)
+
+  const toggleFullscreen = () => {
+    if (document.fullscreenElement) {
+      document.exitFullscreen().catch(() => {})
+    } else {
+      containerRef.current?.requestFullscreen().catch(() => {})
+    }
+  }
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(document.fullscreenElement === containerRef.current)
+    }
+    document.addEventListener('fullscreenchange', handleFullscreenChange)
+    return () =>
+      document.removeEventListener('fullscreenchange', handleFullscreenChange)
+  }, [])
+
+  useEffect(() => {
+    if (!isFullscreen) {
+      setKeyWidth(BASE_WHITE_KEY_WIDTH)
+      return
+    }
+    const recompute = () => {
+      const maxByWidth = (window.innerWidth - 96) / WHITE_KEYS.length
+      const maxByHeight =
+        (window.innerHeight - 260) / (BASE_WHITE_KEY_HEIGHT / BASE_WHITE_KEY_WIDTH)
+      const next = Math.max(BASE_WHITE_KEY_WIDTH, Math.min(maxByWidth, maxByHeight, 140))
+      setKeyWidth(next)
+    }
+    recompute()
+    window.addEventListener('resize', recompute)
+    return () => window.removeEventListener('resize', recompute)
+  }, [isFullscreen])
+
+  const scale = keyWidth / BASE_WHITE_KEY_WIDTH
+  const blackKeyWidth = BASE_BLACK_KEY_WIDTH * scale
+  const whiteKeyHeight = BASE_WHITE_KEY_HEIGHT * scale
+  const blackKeyHeight = BASE_BLACK_KEY_HEIGHT * scale
 
   useEffect(() => {
     const synth = new Tone.PolySynth(Tone.Synth, {
@@ -133,72 +194,97 @@ function SynthKeyboard() {
   const isArmed = recorder.armedInstrumentId === INSTRUMENT_ID
 
   return (
-    <div className="rounded-lg border bg-card p-6 shadow-sm">
+    <div
+      ref={containerRef}
+      className={cn(
+        'rounded-lg border bg-card p-6 shadow-sm',
+        isFullscreen && 'flex h-screen flex-col justify-center',
+      )}
+    >
       <div className="mb-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <PianoIcon className="size-5" />
           <h2 className="font-heading text-xl">Synth Keyboard</h2>
         </div>
-        <Button
-          variant={isArmed ? 'destructive' : 'outline'}
-          size="sm"
-          onClick={() =>
-            isArmed
-              ? recorder.stopRecording()
-              : recorder.startRecording(INSTRUMENT_ID)
-          }
-        >
-          {isArmed ? (
-            <Square className="size-4" />
-          ) : (
-            <Disc className="size-4" />
-          )}
-          {isArmed ? 'Recording…' : 'Arm to Record'}
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant={isArmed ? 'destructive' : 'outline'}
+            size="sm"
+            onClick={() =>
+              isArmed
+                ? recorder.stopRecording()
+                : recorder.startRecording(INSTRUMENT_ID)
+            }
+          >
+            {isArmed ? (
+              <Square className="size-4" />
+            ) : (
+              <Disc className="size-4" />
+            )}
+            {isArmed ? 'Recording…' : 'Arm to Record'}
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={toggleFullscreen}
+            aria-label={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
+          >
+            {isFullscreen ? (
+              <Minimize className="size-4" />
+            ) : (
+              <Maximize className="size-4" />
+            )}
+          </Button>
+        </div>
       </div>
 
-      <div
-        className="relative mx-auto select-none"
-        style={{ width: WHITE_KEYS.length * WHITE_KEY_WIDTH, height: 160 }}
-      >
-        {WHITE_KEYS.map((k) => (
-          <button
-            key={k.note}
-            onMouseDown={() => pressNote(k.note)}
-            onMouseUp={() => releaseNote(k.note)}
-            onMouseLeave={() => releaseNote(k.note)}
-            className={cn(
-              'absolute top-0 flex items-end justify-center rounded-b-sm border border-key-white-foreground/30 bg-key-white pb-2 text-[10px] font-medium text-key-white-foreground shadow-sm transition-colors',
-              activeNotes.has(k.note) && 'bg-signal/40',
-            )}
-            style={{
-              left: k.index * WHITE_KEY_WIDTH,
-              width: WHITE_KEY_WIDTH - 2,
-              height: 160,
-            }}
-          >
-            {k.key.toUpperCase()}
-          </button>
-        ))}
-        {BLACK_KEYS.map((k) => (
-          <button
-            key={k.note}
-            onMouseDown={() => pressNote(k.note)}
-            onMouseUp={() => releaseNote(k.note)}
-            onMouseLeave={() => releaseNote(k.note)}
-            className={cn(
-              'absolute top-0 z-10 flex items-end justify-center rounded-b-sm border border-key-black-foreground/20 bg-key-black pb-2 text-[10px] font-medium text-key-black-foreground shadow-md',
-              activeNotes.has(k.note) && 'bg-signal text-signal-foreground',
-            )}
-            style={{
-              left: k.leftIndex * WHITE_KEY_WIDTH - BLACK_KEY_WIDTH / 2,
-              width: BLACK_KEY_WIDTH,
-              height: 100,
-            }}
-          >
-            {k.key.toUpperCase()}
-          </button>
-        ))}
+      <div className="overflow-x-auto">
+        <div
+          className="relative mx-auto select-none"
+          style={{
+            width: WHITE_KEYS.length * keyWidth,
+            height: whiteKeyHeight,
+          }}
+        >
+          {WHITE_KEYS.map((k) => (
+            <button
+              key={k.note}
+              onMouseDown={() => pressNote(k.note)}
+              onMouseUp={() => releaseNote(k.note)}
+              onMouseLeave={() => releaseNote(k.note)}
+              className={cn(
+                'absolute top-0 flex items-end justify-center rounded-b-sm border border-key-white-foreground/30 bg-key-white pb-2 text-[10px] font-medium text-key-white-foreground shadow-sm transition-colors',
+                activeNotes.has(k.note) && 'bg-signal/40',
+              )}
+              style={{
+                left: k.index * keyWidth,
+                width: keyWidth - 2,
+                height: whiteKeyHeight,
+              }}
+            >
+              {k.key.toUpperCase()}
+            </button>
+          ))}
+          {BLACK_KEYS.map((k) => (
+            <button
+              key={k.note}
+              onMouseDown={() => pressNote(k.note)}
+              onMouseUp={() => releaseNote(k.note)}
+              onMouseLeave={() => releaseNote(k.note)}
+              className={cn(
+                'absolute top-0 z-10 flex items-end justify-center rounded-b-sm border border-key-black-foreground/20 bg-key-black pb-2 text-[10px] font-medium text-key-black-foreground shadow-md',
+                activeNotes.has(k.note) && 'bg-signal text-signal-foreground',
+              )}
+              style={{
+                left: k.leftIndex * keyWidth - blackKeyWidth / 2,
+                width: blackKeyWidth,
+                height: blackKeyHeight,
+              }}
+            >
+              {k.key.toUpperCase()}
+            </button>
+          ))}
+        </div>
       </div>
     </div>
   )
